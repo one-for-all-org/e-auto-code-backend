@@ -7,11 +7,10 @@ export function notFound(_req: Request, _res: Response, next: NextFunction) {
   next(new AppError("Route introuvable", 404));
 }
 
-export function errorHandler(err: any, req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: any, _req: Request, res: Response, _next: NextFunction) {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
-      const maxSize = req.path.startsWith("/api/admin/lessons") ? "10 Mo" : "1 Mo";
-      return fail(res, `Fichier trop volumineux (limite : ${maxSize})`, 413);
+      return fail(res, "Fichier trop volumineux (limite : 1 Mo)", 413);
     }
     return fail(res, "Fichier invalide", 400, err.code);
   }

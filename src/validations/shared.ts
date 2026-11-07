@@ -36,6 +36,10 @@ export const lessonIdSchema = z.object({
   lessonId: z.string().uuid("ID de leçon invalide"),
 });
 
+export const lessonQuestionSchema = z.object({
+  question: z.string().trim().min(1, "Saisissez une question sur le document.").max(2000, "La question ne peut pas dépasser 2000 caractères."),
+});
+
 export const messageSendSchema = z.object({
   content: z.string().trim().max(4000, "Message trop long (4000 caractères max)").default(""),
 });

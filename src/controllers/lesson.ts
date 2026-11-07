@@ -12,7 +12,7 @@ export const list = asyncHandler(async (_req: Request, res: Response) => {
 
 export const upload = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
-    throw new AppError("Sélectionnez un fichier PDF ou TXT.", 400);
+    throw new AppError("Sélectionnez un fichier PDF, TXT ou DOCX.", 400);
   }
   const user = (req as AuthRequest).user;
   if (!user) {
@@ -28,6 +28,15 @@ export const upload = asyncHandler(async (req: Request, res: Response) => {
       createdAt: lesson.createdAt,
     },
   }, "Leçon validée et ajoutée à la base de connaissances.", 201);
+});
+
+export const analyze = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.file) {
+    throw new AppError("Sélectionnez un fichier PDF, TXT ou DOCX.", 400);
+  }
+  const question = req.body.question as string;
+  const answer = await lessonService.askAboutDocument(req.file, question);
+  return ok(res, { answer }, "Réponse générée.");
 });
 
 export const remove = asyncHandler(async (req: Request, res: Response) => {
