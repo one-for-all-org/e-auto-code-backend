@@ -78,9 +78,11 @@ export async function listLessons() {
     .select({
       id: roadLessons.id,
       originalName: roadLessons.originalName,
+      resourceUrl: roadLessons.resourceUrl,
       mimeType: roadLessons.mimeType,
       fileSize: roadLessons.fileSize,
       createdAt: roadLessons.createdAt,
+      updatedAt: roadLessons.updatedAt,
     })
     .from(roadLessons)
     .orderBy(desc(roadLessons.createdAt));
