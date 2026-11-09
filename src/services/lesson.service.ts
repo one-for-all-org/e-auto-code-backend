@@ -144,7 +144,7 @@ export async function updateLesson(
     extractedText = await extractDocumentText(file, buffer);
     await assertRoadLessonRelevance(extractedText);
 
-    // Supprimer l'ancien fichier physique pour économiser l'espace
+    // Supprimer l'ancien fichier physique pour économiser l'espace (best-effort sur Render)
     const oldFilePath = resolve(env.LESSON_UPLOAD_DIR, old.storageName);
     try {
       await unlink(oldFilePath);
@@ -159,10 +159,21 @@ export async function updateLesson(
     mimeType = file.mimetype;
     fileSize = file.size;
 
+    // Déplacer le nouveau fichier vers le stockage permanent (best-effort sur Render)
     const directory = resolve(env.LESSON_UPLOAD_DIR);
     const filePath = resolve(directory, storageName);
-    await mkdir(directory, { recursive: true });
-    await rename(file.path, filePath);
+    try {
+      await mkdir(directory, { recursive: true });
+      await rename(file.path, filePath);
+    } catch (error) {
+      console.error("[LESSONS] Impossible de stocker le nouveau fichier physique:", error);
+      // On garde l'ancien storageName et on continue quand même avec la mise à jour DB
+      storageName = old.storageName;
+      fileSize = old.fileSize;
+      extractedText = old.extractedText;
+      originalName = old.originalName;
+      mimeType = old.mimeType;
+    }
   }
 
   const [lesson] = await db
