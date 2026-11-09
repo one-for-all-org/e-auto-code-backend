@@ -6,7 +6,6 @@ import type { RoadRole } from "./user.service";
 
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL}:generateContent`;
 const GEMINI_FALLBACK_URL = `https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_FALLBACK_MODEL}:generateContent`;
-const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const CLOUDFLARE_URL = (accountId: string) =>
@@ -68,13 +67,12 @@ type OpenAIResult = {
   error?: { message?: string; code?: string; type?: string };
 }
 
-type ProviderName = "Gemini" | "GeminiFlashLite" | "Mistral" | "Groq" | "Cloudflare" | "OpenRouter";
+type ProviderName = "Gemini" | "GeminiFlashLite" | "Groq" | "Cloudflare" | "OpenRouter";
 type FailureKind = "quota" | "temporary" | "permanent";
 
 const PROVIDER_VISION: Record<ProviderName, boolean> = {
   Gemini: true,
   GeminiFlashLite: true,
-  Mistral: true,
   Groq: true,
   Cloudflare: true,
   OpenRouter: true,
@@ -232,14 +230,6 @@ export function buildFallbackProviders(hasImage: boolean, _env: typeof env = env
       url: GEMINI_FALLBACK_URL,
       headers: { "x-goog-api-key": _env.GEMINI_API_KEY },
       model: _env.GEMINI_FALLBACK_MODEL,
-    });
-  }
-  if (_env.MISTRAL_API_KEY) {
-    list.push({
-      name: "Mistral",
-      url: MISTRAL_URL,
-      headers: { Authorization: `Bearer ${_env.MISTRAL_API_KEY}` },
-      model: _env.MISTRAL_MODEL,
     });
   }
   if (_env.GROQ_API_KEY) {

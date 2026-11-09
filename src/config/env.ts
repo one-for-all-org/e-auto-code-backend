@@ -12,8 +12,6 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY requis"),
   GEMINI_MODEL: z.string().default("gemini-3.5-flash-lite"),
   GEMINI_FALLBACK_MODEL: z.string().default("gemini-1.5-flash-8b"),
-  MISTRAL_API_KEY: z.string().optional(),
-  MISTRAL_MODEL: z.string().default("pixtral-12b-2409"),
   GROQ_API_KEY: z.string().optional(),
   GROQ_MODEL: z.string().default("qwen/qwen3.8-27b"),
   OPENROUTER_API_KEY: z.string().optional(),
