@@ -184,6 +184,32 @@ async function resizeImageIfNeeded(data: string, mimeType: string): Promise<stri
   }
 }
 
+async function partsWithPdfAsText(parts: ContentPart[]): Promise<ContentPart[]> {
+  const result: ContentPart[] = [];
+  for (const part of parts) {
+    if ("text" in part) {
+      result.push(part);
+      continue;
+    }
+    if (part.inlineData.mimeType === "application/pdf") {
+      try {
+        const parsed = await pdfParse(Buffer.from(part.inlineData.data, "base64"));
+        const text = parsed.text.trim();
+        if (text) {
+          result.push({ text: `[Texte extrait du PDF joint]\n${text.slice(0, 60000)}` });
+        } else {
+          result.push({ text: "[PDF joint sans texte extractible]" });
+        }
+      } catch {
+        result.push({ text: "[PDF joint illisible]" });
+      }
+    } else {
+      result.push(part);
+    }
+  }
+  return result;
+}
+
 async function toOpenAIContent(parts: ContentPart[], options: { resizeImages?: boolean } = {}) {
   const content: ({ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } })[] = [];
   for (const part of parts) {
@@ -285,9 +311,11 @@ export async function generateWithFallback(
   }
 
   const hasImage = parts.some((p) => !("text" in p) && /^image\//.test(p.inlineData.mimeType));
+  const hasPdf = parts.some((p) => !("text" in p) && p.inlineData.mimeType === "application/pdf");
   const fallbacks = buildFallbackProviders(hasImage);
   const fallbackInstruction = `${systemInstruction}\n\nIf you are answering instead of Gemini, you do not have live Google Search. Never claim to have searched the web or invent citations. Use the supplied validated reference documents as the priority source and clearly state uncertainty about current information.`;
   const content = fallbacks.length ? await toOpenAIContent(parts, { resizeImages: true }) : undefined;
+  const partsForGeminiFallback = hasPdf ? await partsWithPdfAsText(parts) : parts;
   let allFailuresWereQuota = primaryFailure.kind === "quota";
 
   for (const provider of fallbacks) {
@@ -303,7 +331,7 @@ export async function generateWithFallback(
         provider.url,
         provider.headers,
         isGeminiLike
-          ? toGeminiBody(fallbackInstruction, parts, { ...options, webSearch: false })
+          ? toGeminiBody(fallbackInstruction, partsForGeminiFallback, { ...options, webSearch: false })
           : {
               model: provider.model,
               messages: [
