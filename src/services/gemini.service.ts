@@ -77,7 +77,7 @@ const PROVIDER_VISION: Record<ProviderName, boolean> = {
   Mistral: true,
   Groq: true,
   Cloudflare: true,
-  OpenRouter: false,
+  OpenRouter: true,
 };
 
 class ProviderFailure extends Error {
