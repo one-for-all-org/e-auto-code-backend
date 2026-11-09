@@ -22,6 +22,13 @@
       "when": 1794201104165,
       "tag": "0002_public_doctor_spectrum",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 0,
+      "tag": "0003_add_resource_url_and_updated_at",
+      "breakpoints": true
     }
   ]
 }
