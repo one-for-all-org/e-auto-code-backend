@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { signToken } from "../utils/jwt";
 import { AppError } from "../utils/AppError";
 import { createRefreshToken } from "./refresh.service";
+import type { RoadRole } from "./user.service";
 
 export type AuthResult = {
   token: string;
@@ -10,7 +11,7 @@ export type AuthResult = {
   user: import("./user.service").User;
 };
 
-export async function register(name: string, email: string, password: string): Promise<AuthResult> {
+export async function register(name: string, email: string, password: string, roadRole: RoadRole): Promise<AuthResult> {
   if (await findByEmail(email)) {
     throw new AppError("Email déjà utilisé", 409);
   }
@@ -19,6 +20,7 @@ export async function register(name: string, email: string, password: string): P
     email,
     passwordHash: bcrypt.hashSync(password, 12),
     role: "USER",
+    roadRole,
     isOk: true,
   });
   const token = signToken({ sub: user.id, role: user.role });

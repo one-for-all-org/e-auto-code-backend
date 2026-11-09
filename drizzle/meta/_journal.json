@@ -15,6 +15,13 @@
       "when": 1794007004545,
       "tag": "0001_wealthy_harry_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794201104165,
+      "tag": "0002_public_doctor_spectrum",
+      "breakpoints": true
     }
   ]
 }

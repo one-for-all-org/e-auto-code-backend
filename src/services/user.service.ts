@@ -5,12 +5,14 @@ import { AppError } from "../utils/AppError";
 import bcrypt from "bcryptjs";
 
 export type UserRole = "USER" | "ADMIN";
+export type RoadRole = "DRIVER" | "PASSENGER" | "PEDESTRIAN" | "CITIZEN";
 
 export type User = {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  roadRole: RoadRole;
   isOk: boolean;
   isBlocked: boolean;
   createdAt: number;
@@ -37,6 +39,7 @@ export async function create(data: {
   email: string;
   passwordHash: string;
   role?: UserRole;
+  roadRole?: RoadRole;
   isOk?: boolean;
 }): Promise<User> {
   const email = data.email.trim().toLowerCase();
@@ -53,6 +56,7 @@ export async function create(data: {
         email,
         passwordHash: data.passwordHash,
         role: data.role ?? "USER",
+        roadRole: data.roadRole ?? "CITIZEN",
         isOk: data.isOk ?? true,
         isBlocked: false,
         createdAt: Date.now(),
@@ -69,12 +73,13 @@ export async function create(data: {
 
 export async function update(
   id: string,
-  data: { name?: string; password?: string; role?: UserRole; isOk?: boolean; isBlocked?: boolean }
+  data: { name?: string; password?: string; role?: UserRole; roadRole?: RoadRole; isOk?: boolean; isBlocked?: boolean }
 ): Promise<User> {
   const updates: Partial<typeof users.$inferInsert> = {};
   if (data.name !== undefined) updates.name = data.name.trim();
   if (data.password !== undefined) updates.passwordHash = bcrypt.hashSync(data.password, 12);
   if (data.role !== undefined) updates.role = data.role;
+  if (data.roadRole !== undefined) updates.roadRole = data.roadRole;
   if (data.isOk !== undefined) updates.isOk = data.isOk;
   if (data.isBlocked !== undefined) updates.isBlocked = data.isBlocked;
 
@@ -107,6 +112,7 @@ function toUser(row: UserRow): User {
     name: row.name,
     email: row.email,
     role: row.role,
+    roadRole: row.roadRole,
     isOk: row.isOk,
     isBlocked: row.isBlocked,
     createdAt: row.createdAt,

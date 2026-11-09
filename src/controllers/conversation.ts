@@ -38,11 +38,11 @@ export const getMessages = asyncHandler(async (req: Request, res: Response) => {
 
 export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { content } = req.body as { content: string };
+  const { content, lang } = req.body as { content: string; lang: "fr" | "en" | "mg" };
   const attachment = req.file as { buffer: Buffer; mimetype: string; originalname: string } | undefined;
   if (!content && !attachment) {
     throw new AppError("Écrivez un message ou joignez un fichier.", 400);
   }
-  const result = await messageService.sendMessage(id, (req as any).user.id, content, attachment);
+  const result = await messageService.sendMessage(id, (req as any).user.id, content, attachment, lang);
   return ok(res, { userMessage: result.userMessage, assistantMessage: result.assistantMessage }, "Message envoyé", 201);
 });

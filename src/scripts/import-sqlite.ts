@@ -25,6 +25,7 @@ async function importSqlite() {
         email: String(row.email).trim().toLowerCase(),
         passwordHash: row.password_hash,
         role: row.role === "ADMIN" ? "ADMIN" as const : "USER" as const,
+        roadRole: "CITIZEN" as const,
         isOk: Boolean(row.is_ok),
         isBlocked: Boolean(row.is_blocked),
         createdAt: Number(row.created_at),

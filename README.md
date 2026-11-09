@@ -66,6 +66,14 @@ OTP_EXPIRES_IN=10m
 
 > `JWT_SECRET` doit faire au moins 32 caractères, sinon le serveur refuse de démarrer.
 
+## Profils d'usagers et réponses Gemini
+
+Chaque compte possède un profil d'usage de la route distinct du rôle d'accès `USER`/`ADMIN` : `DRIVER`, `PASSENGER`, `PEDESTRIAN` ou `CITIZEN`. La migration Drizzle `0002_public_doctor_spectrum.sql` ajoute ce champ avec `CITIZEN` par défaut, y compris pour les comptes déjà présents. Les utilisateurs peuvent ensuite modifier leur profil depuis l'application.
+
+Les réponses Gemini peuvent couvrir le code de la route, l'auto-école, la préparation au permis et les démarches ou documents associés à l'usage de la route à Madagascar. Les documents de référence validés par les administrateurs sont transmis en priorité dans le contexte ; Google Search peut compléter une information manquante ou à actualiser. Les liens web consultés sont ajoutés à la réponse. Cette recherche utilise la clé `GEMINI_API_KEY` existante et le modèle défini par `GEMINI_MODEL`.
+
+Le backend accepte aussi `lang` (`fr`, `en` ou `mg`) avec chaque message et demande à Gemini de répondre dans cette langue. La préférence d'usager est chargée côté serveur depuis le profil du compte.
+
 ## Scripts disponibles
 
 | Script | Description |

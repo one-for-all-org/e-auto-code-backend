@@ -4,6 +4,7 @@ import { eq, asc, desc } from "drizzle-orm";
 import { AppError } from "../utils/AppError";
 import { getConversation } from "./conversation.service";
 import { generateReply, buildParts } from "./gemini.service";
+import { findById } from "./user.service";
 
 export type Message = {
   id: string;
@@ -28,8 +29,10 @@ export async function sendMessage(
   userId: string,
   content: string,
   attachment?: { buffer: Buffer; mimetype: string; originalname: string },
+  language: "fr" | "en" | "mg" = "fr",
 ) {
   await getConversation(conversationId, userId);
+  const user = await findById(userId);
 
   const now = Date.now();
   const userMessageId = crypto.randomUUID();
@@ -60,11 +63,13 @@ export async function sendMessage(
     recent.reverse(),
     attachment,
     lessonRows.map((lesson) => ({ name: lesson.name, content: lesson.content })),
+    user.roadRole,
+    language,
   );
 
   let assistantText: string;
   try {
-    assistantText = await generateReply(parts);
+    assistantText = await generateReply(parts, language);
   } catch (error) {
     await db.delete(messages).where(eq(messages.id, userMessageId));
     throw error;

@@ -18,6 +18,9 @@ export const users = pgTable(
     email: text("email").notNull(),
     passwordHash: text("password_hash").notNull(),
     role: text("role", { enum: ["USER", "ADMIN"] }).notNull().default("USER"),
+    roadRole: text("road_role", { enum: ["DRIVER", "PASSENGER", "PEDESTRIAN", "CITIZEN"] })
+      .notNull()
+      .default("CITIZEN"),
     isOk: boolean("is_ok").notNull().default(false),
     isBlocked: boolean("is_blocked").notNull().default(false),
     createdAt: timestamp("created_at"),

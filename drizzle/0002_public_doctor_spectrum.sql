@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "road_role" text DEFAULT 'CITIZEN' NOT NULL;

@@ -7,6 +7,7 @@ import { register as registerUser, login as loginUser } from "../services/auth.s
 import { createOtp, sendOtpEmail, consumeOtp } from "../services/otp.service";
 import { update, findByEmail, findById } from "../services/user.service";
 import { verifyRefreshToken, revokeRefreshToken, revokeAllRefreshTokensForUser } from "../services/refresh.service";
+import type { RoadRole } from "../services/user.service";
 
 const ACCESS_OPTS = {
   httpOnly: true,
@@ -35,8 +36,8 @@ function clearAuthCookies(res: Response) {
 }
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, password } = req.body as { name: string; email: string; password: string };
-  const result = await registerUser(name, email, password);
+  const { name, email, password, roadRole } = req.body as { name: string; email: string; password: string; roadRole: RoadRole };
+  const result = await registerUser(name, email, password, roadRole);
   setAuthCookies(res, result.token, result.refreshToken);
   return ok(res, { token: result.token, refreshToken: result.refreshToken, user: result.user }, "Compte créé", 201);
 });
@@ -79,6 +80,7 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      roadRole: user.roadRole,
       isOk: user.isOk,
       isBlocked: user.isBlocked,
       createdAt: user.createdAt,

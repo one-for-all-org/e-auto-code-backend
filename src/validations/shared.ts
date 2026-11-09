@@ -4,6 +4,7 @@ export const registerSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   email: z.string().email("Email invalide"),
   password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  roadRole: z.enum(["DRIVER", "PASSENGER", "PEDESTRIAN", "CITIZEN"]).default("CITIZEN"),
 });
 
 export const loginSchema = z.object({
@@ -15,8 +16,9 @@ export const mePatchSchema = z
   .object({
     name: z.string().min(2).optional(),
     password: z.string().min(8).optional(),
+    roadRole: z.enum(["DRIVER", "PASSENGER", "PEDESTRIAN", "CITIZEN"]).optional(),
   })
-  .refine((data) => data.name !== undefined || data.password !== undefined, {
+  .refine((data) => data.name !== undefined || data.password !== undefined || data.roadRole !== undefined, {
     message: "Au moins un champ à modifier",
   });
 
@@ -42,6 +44,7 @@ export const lessonQuestionSchema = z.object({
 
 export const messageSendSchema = z.object({
   content: z.string().trim().max(4000, "Message trop long (4000 caractères max)").default(""),
+  lang: z.enum(["fr", "en", "mg"]).optional().default("fr"),
 });
 
 export const forgotPasswordSchema = z.object({
