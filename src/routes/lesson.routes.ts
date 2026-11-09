@@ -10,6 +10,7 @@ router.use(authenticate, requireRole("ADMIN"));
 router.get("/", lessonController.list);
 router.post("/analyze", lessonAnalyzeUploadOne, validate(lessonQuestionSchema), lessonController.analyze);
 router.post("/", lessonUploadOne, lessonController.upload);
+router.patch("/:lessonId", lessonUploadOne, validateParams(lessonIdSchema), lessonController.update);
 router.delete("/:lessonId", validateParams(lessonIdSchema), lessonController.remove);
 
 export default router;

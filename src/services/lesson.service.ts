@@ -12,11 +12,13 @@ export type UploadedLesson = {
   id: string;
   originalName: string;
   storageName: string;
+  resourceUrl: string | null;
   mimeType: string;
   fileSize: number;
   extractedText: string;
-  uploadedBy: string;
+  uploadedBy: string | null;
   createdAt: number;
+  updatedAt: number;
 };
 
 export async function uploadLesson(file: Express.Multer.File, uploadedBy: string, resourceUrl?: string) {
@@ -104,4 +106,77 @@ export async function deleteLesson(id: string): Promise<void> {
       throw new AppError("La leçon a été supprimée, mais le fichier doit être nettoyé manuellement.", 500);
     }
   }
+}
+
+export async function updateLesson(
+  id: string,
+  file?: Express.Multer.File,
+  resourceUrl?: string | null,
+): Promise<UploadedLesson> {
+  const existing = await db
+    .select()
+    .from(roadLessons)
+    .where(eq(roadLessons.id, id))
+    .limit(1);
+  if (!existing[0]) {
+    throw new AppError("Leçon introuvable.", 404);
+  }
+  const old = existing[0];
+  const now = Date.now();
+
+  let storageName = old.storageName;
+  let mimeType = old.mimeType;
+  let fileSize = old.fileSize;
+  let extractedText = old.extractedText;
+  let originalName = old.originalName;
+
+  if (file) {
+    const extension = extname(file.originalname).toLowerCase();
+    const validType =
+      (extension === ".pdf" && file.mimetype === "application/pdf") ||
+      (extension === ".txt" && file.mimetype === "text/plain") ||
+      (extension === ".docx" && file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    if (!validType) {
+      throw new AppError("Seuls les fichiers PDF, TXT et DOCX sont acceptés.", 400);
+    }
+
+    const buffer = await readFile(file.path);
+    extractedText = await extractDocumentText(file, buffer);
+    await assertRoadLessonRelevance(extractedText);
+
+    // Supprimer l'ancien fichier physique pour économiser l'espace
+    const oldFilePath = resolve(env.LESSON_UPLOAD_DIR, old.storageName);
+    try {
+      await unlink(oldFilePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        console.error("[LESSONS] Impossible de supprimer l'ancien fichier:", error);
+      }
+    }
+
+    storageName = `${crypto.randomUUID()}${extension}`;
+    originalName = basename(file.originalname).slice(0, 255);
+    mimeType = file.mimetype;
+    fileSize = file.size;
+
+    const directory = resolve(env.LESSON_UPLOAD_DIR);
+    const filePath = resolve(directory, storageName);
+    await mkdir(directory, { recursive: true });
+    await rename(file.path, filePath);
+  }
+
+  const [lesson] = await db
+    .update(roadLessons)
+    .set({
+      originalName,
+      storageName,
+      resourceUrl: resourceUrl ?? null,
+      mimeType,
+      fileSize,
+      extractedText,
+      updatedAt: now,
+    })
+    .where(eq(roadLessons.id, id))
+    .returning();
+  return lesson;
 }

@@ -46,3 +46,22 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
   await lessonService.deleteLesson(req.params.lessonId);
   return ok(res, { id: req.params.lessonId }, "Leçon supprimée.");
 });
+
+export const update = asyncHandler(async (req: Request, res: Response) => {
+  const resourceUrl = typeof req.body.resourceUrl === "string" ? req.body.resourceUrl.trim() || undefined : undefined;
+  if (!req.file && !resourceUrl) {
+    throw new AppError("Fournissez un fichier et/ou un lien de ressource à modifier.", 400);
+  }
+  const lesson = await lessonService.updateLesson(req.params.lessonId, req.file ?? undefined, resourceUrl);
+  return ok(res, {
+    lesson: {
+      id: lesson.id,
+      originalName: lesson.originalName,
+      resourceUrl: lesson.resourceUrl,
+      mimeType: lesson.mimeType,
+      fileSize: lesson.fileSize,
+      createdAt: lesson.createdAt,
+      updatedAt: lesson.updatedAt,
+    },
+  }, "Leçon mise à jour.");
+});
