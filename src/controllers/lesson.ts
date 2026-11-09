@@ -18,14 +18,17 @@ export const upload = asyncHandler(async (req: Request, res: Response) => {
   if (!user) {
     throw new AppError("Authentification requise.", 401);
   }
-  const lesson = await lessonService.uploadLesson(req.file, user.id);
+  const resourceUrl = typeof req.body.resourceUrl === "string" ? req.body.resourceUrl.trim() || undefined : undefined;
+  const lesson = await lessonService.uploadLesson(req.file, user.id, resourceUrl);
   return ok(res, {
     lesson: {
       id: lesson.id,
       originalName: lesson.originalName,
+      resourceUrl: lesson.resourceUrl,
       mimeType: lesson.mimeType,
       fileSize: lesson.fileSize,
       createdAt: lesson.createdAt,
+      updatedAt: lesson.updatedAt,
     },
   }, "Leçon validée et ajoutée à la base de connaissances.", 201);
 });

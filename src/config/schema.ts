@@ -90,11 +90,13 @@ export const roadLessons = pgTable(
     id: text("id").primaryKey(),
     originalName: text("original_name").notNull(),
     storageName: text("storage_name").notNull(),
+    resourceUrl: text("resource_url"),
     mimeType: text("mime_type").notNull(),
     fileSize: integer("file_size").notNull(),
     extractedText: text("extracted_text").notNull(),
     uploadedBy: text("uploaded_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at"),
+    updatedAt: timestamp("updated_at"),
   },
   (table) => [
     uniqueIndex("road_lessons_storage_name_unique").on(table.storageName),

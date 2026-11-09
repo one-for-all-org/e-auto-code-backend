@@ -19,7 +19,7 @@ export type UploadedLesson = {
   createdAt: number;
 };
 
-export async function uploadLesson(file: Express.Multer.File, uploadedBy: string) {
+export async function uploadLesson(file: Express.Multer.File, uploadedBy: string, resourceUrl?: string) {
   const extension = extname(file.originalname).toLowerCase();
   if (!file.path) {
     throw new AppError("Le fichier téléversé est indisponible sur le serveur.", 500);
@@ -35,6 +35,7 @@ export async function uploadLesson(file: Express.Multer.File, uploadedBy: string
   const filePath = resolve(directory, storageName);
   await mkdir(directory, { recursive: true });
   await rename(file.path, filePath);
+  const now = Date.now();
 
   try {
     const [lesson] = await db
@@ -43,11 +44,13 @@ export async function uploadLesson(file: Express.Multer.File, uploadedBy: string
         id,
         originalName,
         storageName,
+        resourceUrl: resourceUrl ?? null,
         mimeType: file.mimetype,
         fileSize: file.size,
         extractedText,
         uploadedBy,
-        createdAt: Date.now(),
+        createdAt: now,
+        updatedAt: now,
       })
       .returning();
     return lesson;
