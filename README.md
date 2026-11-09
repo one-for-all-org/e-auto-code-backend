@@ -46,6 +46,10 @@ JWT_EXPIRES_IN=15m
 REFRESH_TOKEN_EXPIRES_IN=7d
 GEMINI_API_KEY=votre_cle_gemini
 GEMINI_MODEL=gemini-3.5-flash-lite
+# Facultatif : fournisseurs de secours après Gemini
+GROQ_API_KEY=votre_cle_groq
+GROQ_MODEL=qwen/qwen3.8-27b
+OPENROUTER_API_KEY=votre_cle_openrouter
 CORS_ORIGIN=http://localhost:5173
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/code_route
 ADMIN_EMAIL=admin@example.com
@@ -70,7 +74,11 @@ OTP_EXPIRES_IN=10m
 
 Chaque compte possède un profil d'usage de la route distinct du rôle d'accès `USER`/`ADMIN` : `DRIVER`, `PASSENGER`, `PEDESTRIAN` ou `CITIZEN`. La migration Drizzle `0002_public_doctor_spectrum.sql` ajoute ce champ avec `CITIZEN` par défaut, y compris pour les comptes déjà présents. Les utilisateurs peuvent ensuite modifier leur profil depuis l'application.
 
-Les réponses Gemini peuvent couvrir le code de la route, l'auto-école, la préparation au permis et les démarches ou documents associés à l'usage de la route à Madagascar. Les documents de référence validés par les administrateurs sont transmis en priorité dans le contexte ; Google Search peut compléter une information manquante ou à actualiser. Les liens web consultés sont ajoutés à la réponse. Cette recherche utilise la clé `GEMINI_API_KEY` existante et le modèle défini par `GEMINI_MODEL`.
+Les réponses IA peuvent couvrir le code de la route, l'auto-école, la préparation au permis et les démarches ou documents associés à l'usage de la route à Madagascar. Les documents de référence validés par les administrateurs sont transmis en priorité dans le contexte.
+
+Le backend essaie les fournisseurs dans cet ordre : **Gemini**, puis **Groq**, puis **OpenRouter**. Groq et OpenRouter sont facultatifs et ne sont activés que si leurs clés sont configurées. OpenRouter utilise son routeur `openrouter/free`, qui ne sélectionne que des modèles gratuits. Le passage au fournisseur suivant se fait en cas de quota limité (HTTP 429 ou erreur de quota), de panne temporaire (réseau, délai dépassé ou HTTP 5xx) ou d'échec du fournisseur de secours. Une clé Gemini invalide ou une requête invalide ne déclenche pas de bascule. Les quotas, disponibilités et performances des offres gratuites peuvent varier.
+
+Gemini reste le seul fournisseur avec Google Search dans cette configuration. Une réponse de secours utilise les documents validés fournis, mais ne fait pas de recherche web et ne doit pas inventer de citations. Les images sont transmises aux modèles de vision ; pour les fournisseurs de secours, le backend extrait le texte des PDF, donc les PDF numérisés sans couche texte ne peuvent pas être analysés par le secours. Les fichiers envoyés sont transmis au fournisseur effectivement sollicité ; consultez les conditions de confidentialité de chaque fournisseur avant d'activer les clés.
 
 Le backend accepte aussi `lang` (`fr`, `en` ou `mg`) avec chaque message et demande à Gemini de répondre dans cette langue. La préférence d'usager est chargée côté serveur depuis le profil du compte.
 
