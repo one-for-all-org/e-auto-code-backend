@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS "road_sources" (
 	"updated_at" bigint NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "road_lessons" ADD COLUMN "resource_url" text;--> statement-breakpoint
-ALTER TABLE "road_lessons" ADD COLUMN "updated_at" bigint NOT NULL;--> statement-breakpoint
+ALTER TABLE "road_lessons" ADD COLUMN IF NOT EXISTS "resource_url" text;--> statement-breakpoint
+ALTER TABLE "road_lessons" ADD COLUMN IF NOT EXISTS "updated_at" bigint;--> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "road_sources" ADD CONSTRAINT "road_sources_added_by_users_id_fk" FOREIGN KEY ("added_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 EXCEPTION
