@@ -4,6 +4,7 @@ import userRoutes from "./user.routes";
 import conversationRoutes from "./conversation.routes";
 import adminRoutes from "./admin.routes";
 import lessonRoutes from "./lesson.routes";
+import sourceRoutes from "./source.routes";
 
 const router = Router();
 
@@ -12,5 +13,6 @@ router.use("/", userRoutes);
 router.use("/conversations", conversationRoutes);
 router.use("/admin/users", adminRoutes);
 router.use("/admin/lessons", lessonRoutes);
+router.use("/admin/sources", sourceRoutes);
 
 export default router;

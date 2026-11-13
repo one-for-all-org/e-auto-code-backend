@@ -1,10 +1,34 @@
 import { db } from "../config/db";
-import { messages, conversations, roadLessons } from "../config/schema";
+import { messages, conversations, roadLessons, roadSources } from "../config/schema";
 import { eq, asc, desc } from "drizzle-orm";
+import { env } from "../config/env";
 import { AppError } from "../utils/AppError";
 import { getConversation } from "./conversation.service";
 import { generateReply, buildParts } from "./gemini.service";
 import { findById } from "./user.service";
+
+const aiUsageByUser = new Map<string, { day: string; count: number }>();
+
+function assertUserDailyQuota(userId: string): void {
+  const day = new Date().toISOString().slice(0, 10);
+  const entry = aiUsageByUser.get(userId);
+  const count = entry && entry.day === day ? entry.count : 0;
+  if (count >= env.AI_USER_DAILY_LIMIT) {
+    throw new AppError(
+      "Vous avez atteint votre limite de questions pour aujourd'hui. Réessayez demain.",
+      429,
+    );
+  }
+  aiUsageByUser.set(userId, { day, count: count + 1 });
+}
+
+function refundUserDailyQuota(userId: string): void {
+  const day = new Date().toISOString().slice(0, 10);
+  const entry = aiUsageByUser.get(userId);
+  if (entry && entry.day === day && entry.count > 0) {
+    entry.count -= 1;
+  }
+}
 
 export type Message = {
   id: string;
@@ -32,6 +56,7 @@ export async function sendMessage(
   language: "fr" | "en" | "mg" = "fr",
 ) {
   await getConversation(conversationId, userId);
+  assertUserDailyQuota(userId);
   const user = await findById(userId);
 
   const now = Date.now();
@@ -59,19 +84,33 @@ export async function sendMessage(
     .from(roadLessons)
     .orderBy(desc(roadLessons.createdAt))
     .limit(10);
+  const sourceRows = await db
+    .select({
+      title: roadSources.title,
+      url: roadSources.url,
+      content: roadSources.extractedText,
+    })
+    .from(roadSources)
+    .where(eq(roadSources.isActive, true))
+    .orderBy(desc(roadSources.updatedAt))
+    .limit(20);
   const parts = buildParts(
     recent.reverse(),
     attachment,
     lessonRows.map((lesson) => ({ name: lesson.name, content: lesson.content })),
     user.roadRole,
     language,
+    sourceRows,
   );
 
   let assistantText: string;
   try {
-    assistantText = await generateReply(parts, language);
+    assistantText = await generateReply(parts, language, {
+      webSearch: lessonRows.length === 0 && sourceRows.length === 0,
+    });
   } catch (error) {
     await db.delete(messages).where(eq(messages.id, userMessageId));
+    refundUserDailyQuota(userId);
     throw error;
   }
 

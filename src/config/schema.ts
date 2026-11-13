@@ -103,3 +103,22 @@ export const roadLessons = pgTable(
     index("idx_road_lessons_created").on(table.createdAt),
   ],
 );
+
+export const roadSources = pgTable(
+  "road_sources",
+  {
+    id: text("id").primaryKey(),
+    title: text("title").notNull(),
+    url: text("url").notNull(),
+    description: text("description"),
+    extractedText: text("extracted_text").notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    addedBy: text("added_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at"),
+    updatedAt: timestamp("updated_at"),
+  },
+  (table) => [
+    uniqueIndex("road_sources_url_unique").on(table.url),
+    index("idx_road_sources_active").on(table.isActive),
+  ],
+);

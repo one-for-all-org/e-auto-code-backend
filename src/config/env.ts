@@ -12,9 +12,25 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY requis"),
   GEMINI_MODEL: z.string().default("gemini-3.5-flash-lite"),
   GEMINI_FALLBACK_MODEL: z.string().default("gemini-1.5-flash-8b"),
+  GEMINI_FALLBACK_API_KEY: z
+    .string()
+    .optional()
+    .transform((value) => (value && value.trim() ? value.trim() : undefined)),
   GROQ_API_KEY: z.string().optional(),
+  GROQ_API_KEYS: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? value.split(",").map((key) => key.trim()).filter(Boolean) : undefined,
+    ),
   GROQ_MODEL: z.string().default("qwen/qwen3.8-27b"),
   OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_API_KEYS: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? value.split(",").map((key) => key.trim()).filter(Boolean) : undefined,
+    ),
   CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
   CLOUDFLARE_API_TOKEN: z.string().optional(),
   CLOUDFLARE_MODEL: z.string().default("mistral-small-3.1-24b-instruct"),
@@ -25,6 +41,7 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z.string().min(12).optional(),
   ADMIN_NAME: z.string().min(2).default("Administrateur"),
   LESSON_UPLOAD_DIR: z.string().default("./uploads/lessons"),
+  AI_USER_DAILY_LIMIT: z.coerce.number().int().positive().default(40),
 
   // SMTP (optionnel : si non configuré, l'OTP est logué en console)
   SMTP_HOST: z.string().default(""),

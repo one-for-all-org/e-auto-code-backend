@@ -38,6 +38,24 @@ export const lessonIdSchema = z.object({
   lessonId: z.string().uuid("ID de leçon invalide"),
 });
 
+export const sourceCreateSchema = z.object({
+  url: z.string().trim().url("URL invalide").max(2000, "URL trop longue"),
+  title: z.string().trim().min(2, "Le titre doit contenir au moins 2 caractères").max(200, "Titre trop long"),
+  description: z.string().trim().max(500, "Description trop longue").optional(),
+});
+
+export const sourceUpdateSchema = z
+  .object({
+    isActive: z.boolean().optional(),
+  })
+  .refine((data) => data.isActive !== undefined, {
+    message: "Au moins un champ à modifier",
+  });
+
+export const sourceIdSchema = z.object({
+  sourceId: z.string().uuid("ID de source invalide"),
+});
+
 export const lessonQuestionSchema = z.object({
   question: z.string().trim().min(1, "Saisissez une question sur le document.").max(2000, "La question ne peut pas dépasser 2000 caractères."),
 });
